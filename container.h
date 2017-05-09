@@ -172,7 +172,9 @@ template <class T>
 void Container<T>::clear()
 {
     while (this -> size != 0)
+    {
         pop_back();
+    }
 }
 
 template <class T>
@@ -185,7 +187,7 @@ void Container<T>::output() const
         for (uint8_t i = 1; i < this -> size; i++)
         {
             tmp = tmp -> pnext;
-            std::cout << ", " << tmp -> value;
+	    std::cout << tmp -> value;
         }
     }
 }

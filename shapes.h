@@ -16,8 +16,10 @@
 
 class Shape : public Printable
 {
+private:
+    static uint8_t number;
 public:
-    static uint8_t & GetCount() { static uint8_t num=0; return num; }
+    static uint8_t GetCount();
     Shape();
     std::string getInfo() const
     {
@@ -27,6 +29,8 @@ public:
     ~Shape();
 };
 
+uint8_t Shape::number = 0;
+
 std::ostream & operator << (std::ostream & s, Shape const & sh)
 {
     return s << sh.getInfo() << "\n";
@@ -34,13 +38,20 @@ std::ostream & operator << (std::ostream & s, Shape const & sh)
 
 Shape::Shape()
 {
-    ++GetCount();
+    std::cout<<"++";
+    ++number;
     this -> info += "This is a geometric shape.";
+}
+
+uint8_t Shape::GetCount()
+{
+    return number;
 }
 
 Shape::~Shape()
 {
-    --GetCount();
+    std::cout<<"--";
+    --number;
 }
 
 
@@ -55,13 +66,13 @@ public:
     Point (float const pt_x, float const pt_y);
     float getX() const {return this -> x;}
     float getY() const {return this -> y;}
-    Point operator = (Point const & pt);
+    Point & operator = (Point const & pt);
     std::string getInfo()
     {
         std::cout << this -> info << "\n";
         return this -> info;
     }
-    static Point getRand();
+    static Point & getRand();
     ~Point() { }
 };
 
@@ -88,15 +99,18 @@ Point::Point(float const pt_x, float const pt_y) : Named(std::string ("point"))
             + std::to_string (this -> y) + ").";
 }
 
-Point Point::operator = (Point const & pt)
+Point & Point::operator = (Point const & pt)
 {
-    return Point (pt.x, pt.y);
+    this -> x = pt.x;
+    this -> y = pt.y;
+    return * this;
 }
 
-Point Point::getRand()
+Point & Point::getRand()
 {
     std::srand ((unsigned int)time(0));
-    return Point ((const float)((std::rand() % 200) - 100), (const float)((std::rand() % 200) - 100));
+    Point * p = new Point ((const float)(std::rand() % 100), (const float)(std::rand() % 100));
+    return * p;
 }
 
 
@@ -107,6 +121,7 @@ private:
     float rad;
     std::string info;
 public:
+    Circle ();
     Circle(Point const & cir_centr, float const cir_rad);
     Circle(float const ct_x, float const ct_y, float const cir_rad);
     Point getCenter() const {return this -> center;}
@@ -116,13 +131,20 @@ public:
         std::cout << this -> info << "\n";
         return this -> info;
     }
-    static Circle getRand();
+    static Circle & getRand();
     ~Circle() { }
 };
 
 std::ostream & operator << (std::ostream & s, Circle const & c)
 {
     return s << "Circle: \n\tCenter: " << c.getCenter() << "\tRadius: " << c.getRad() << "\n";
+}
+
+Circle::Circle () : Named(std::string ("circle"))
+{
+    this -> info = Shape::info + " " + Named::info;
+    this -> rad = 1;
+    this -> center = Point (1, 1);
 }
 
 Circle::Circle(Point const & cir_center, float const cir_rad) : Named(std::string ("circle"))
@@ -160,7 +182,7 @@ Circle::Circle(float const ct_x, float const ct_y, float const cir_rad) : Named(
     catch (std::string err)
     {
         std::cout << "Error! " << err << "\n" << "Radius set to 5.\n";
-        this -> rad =5;
+	this -> rad = 5;
     }
     this -> info += "It's radius is: " + std::to_string(this -> rad) + ", coordinates of center are: ("
             + std::to_string(this -> center.getX()) + ", " + std::to_string(this -> center.getY())
@@ -168,10 +190,12 @@ Circle::Circle(float const ct_x, float const ct_y, float const cir_rad) : Named(
             + std::to_string(2 * M_PI * this -> rad) + ".";
 }
 
-Circle Circle::getRand()
+Circle & Circle::getRand()
 {
     std::srand ((unsigned int)time(0));
-    return Circle (Point::getRand(), (const float)((std::rand() % 200) - 100));
+    Point p = Point::getRand();
+    Circle * c = new Circle (p, (const float)(std::rand() % 100));
+    return * c;
 }
 
 
@@ -183,6 +207,7 @@ private:
     Point left_up;
     std::string info;
 public:
+    Rect ();
     Rect(Point const & p1, Point const & p2);
     Rect(Point const & _left_up, float const _width, float const _height);
     float getWidth() const {return this -> width;}
@@ -193,7 +218,7 @@ public:
         std::cout << this -> info << "\n";
         return this -> info;
     }
-    static Rect getRand();
+    static Rect & getRand();
     ~Rect() { }
 };
 
@@ -201,6 +226,14 @@ std::ostream & operator << (std::ostream & s, Rect const & r)
 {
     return s << "Rectangular: \n\tLeft up: " << r.getLeftUp() << "\tWidth: " << r.getWidth()
              << "\n\tHeight: " << r.getHeight() << "\n";
+}
+
+Rect::Rect () : Named(std::string ("rectangular"))
+{
+    this -> info = Shape::info + " " + Named::info;
+    this -> left_up = Point (1, 1);
+    this -> width = 1;
+    this -> height = 1;
 }
 
 Rect::Rect(Point const & p1, Point const & p2) : Named(std::string ("rectangular"))
@@ -252,10 +285,11 @@ Rect::Rect(Point const & _left_up, float const _width, float const _height) : Na
             + std::to_string(2 * ((this -> width) + (this -> height))) + ".";
 }
 
-Rect Rect::getRand()
+Rect & Rect::getRand()
 {
         std::srand ((unsigned int)time(0));
-        return Rect (Point::getRand(), Point::getRand());
+	Rect * r = new Rect (Point::getRand(), (const float)(std::rand() % 100), (const float)(std::rand() % 100));
+	return * r;
 }
 
 
@@ -266,6 +300,7 @@ private:
     float side;
     std::string info;
 public:
+    Square();
     Square(const Point & _left_up, const float _side);
     Square(const Point & p1, const Point & p2);
     Point getLeftUp() const {return this -> left_up;}
@@ -275,13 +310,20 @@ public:
         std::cout << this -> info << "\n";
         return this -> info;
     }
-    static Square getRand();
+    static Square & getRand();
     ~Square() { }
 };
 
 std::ostream & operator << (std::ostream & s, Square const & sq)
 {
     return s << "Square: \n\tLeft up: " << sq.getLeftUp() << "\tSide: " << sq.getSide() << "\n";
+}
+
+Square::Square() : Named(std::string ("square"))
+{
+    this -> info = Shape::info + " " + Named::info;
+    this -> left_up = Point (1, 1);
+    this -> side = 1;
 }
 
 Square::Square(const Point & _left_up, const float _side) : Named(std::string ("square"))
@@ -321,12 +363,12 @@ Square::Square(const Point & p1, const Point & p2) : Named(std::string ("square"
             + std::to_string(4 * (this -> side)) + ".";
 }
 
-Square Square::getRand()
+Square & Square::getRand()
 {
         std::srand ((unsigned int)time(0));
-        return Square (Point::getRand(), (const float)((std::rand() % 200) - 100));
+	Square * s = new Square (Point::getRand(), (const float)(std::rand() % 100));
+	return * s;
 }
-
 
 class Polyline : public Shape, public Named
 {
@@ -334,24 +376,31 @@ private:
     Container<Point> pts;
     std::string info;
 public:
+    Polyline ();
     Polyline(Point const & p1, Point const & p2);
     Container<Point> getPoints() const
     {
-        return this -> pts;
+	return this -> pts;
     }
     void AddPoint( Point const & point );
     std::string getInfo()
     {
-        std::cout << this -> info << "\n";
-        return this -> info;
+	std::cout << this -> info << "\n";
+	return this -> info;
     }
-    static Polyline getRand();
+    static Polyline & getRand();
     ~Polyline ();
 };
 
 std::ostream & operator << (std::ostream & s, Polyline const & pl)
 {
     return s << "Polyline: \n" << pl.getPoints();
+}
+
+Polyline::Polyline() : Named(std::string ("polyline"))
+{
+    this -> info = Shape::info + " " + Named::info;
+    this -> pts = Container<Point> ();
 }
 
 Polyline::Polyline(Point const & p1, Point const & p2) : Named(std::string ("polyline"))
@@ -367,18 +416,18 @@ void Polyline::AddPoint( Point const & point )
     this -> pts.push_back(point);
 }
 
-Polyline Polyline::getRand()
+Polyline & Polyline::getRand()
 {
     std::srand ((unsigned int)time(0));
-    Polyline p (Point::getRand(), Point::getRand());
+    Polyline * p = new Polyline (Point::getRand(), Point::getRand());
     for (uint8_t i = 0; i < std::rand() % 50; i++)
-        p.AddPoint(Point::getRand());
-    return p;
+	p -> AddPoint(Point::getRand());
+    return * p;
 }
 
 Polyline::~Polyline()
 {
-    this -> pts.clear();
+
 }
 
 
@@ -388,21 +437,28 @@ private:
     Container<Point> pts;
     std::string info;
 public:
+    Polygon();
     Polygon(Point const & p1, Point const & p2, Point const & p3);
     Container<Point> getPoints() const {return this -> pts;}
     void AddPoint(Point const & point );
     std::string getInfo()
     {
-        std::cout << this -> info << "\n";
-        return this -> info;
+	std::cout << this -> info << "\n";
+	return this -> info;
     }
-    static Polygon getRand();
+    static Polygon & getRand();
     ~Polygon ();
 };
 
 std::ostream & operator << (std::ostream & s, Polygon const & pl)
 {
     return s << "Polyline: \n" << pl.getPoints();
+}
+
+Polygon::Polygon() : Named(std::string ("polygon"))
+{
+    this -> info = Shape::info + " " + Named::info;
+    this -> pts = Container<Point>();
 }
 
 Polygon::Polygon(Point const & p1, Point const & p2, Point const & p3) : Named(std::string ("polygon"))
@@ -419,18 +475,20 @@ void Polygon::AddPoint( Point const & point )
    this -> pts.push_back(point);
 }
 
-Polygon Polygon::getRand()
+Polygon & Polygon::getRand()
 {
     std::srand ((unsigned int)time(0));
-    Polygon p (Point::getRand(), Point::getRand(), Point::getRand());
+    Polygon * p = new Polygon (Point::getRand(), Point::getRand(), Point::getRand());
     for (uint8_t i = 0; i < std::rand() % 50; i++)
-        p.AddPoint(Point::getRand());
-    return p;
+	p -> AddPoint(Point::getRand());
+    return * p;
 }
 
 Polygon::~Polygon()
 {
-    this -> pts.clear();
+
 }
+
+
 
 #endif // SHAPE_H
